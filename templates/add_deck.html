@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Create Deck
+{% endblock %}
+
+{% block main %}
+    <div>
+        <form action="/add_deck" method="post">
+            <div>
+                <input type="text" name="deckName" placeholder="Name" required>
+                <textarea name="deckDescription" placeholder="Description"></textarea> 
+            </div>
+            <div>
+                <input type="text" name="question" placeholder="Question">
+                <input typer="text" name="answer" placeholder="Answer">
+                <button>Delete</button>
+            </div>
+            <div>
+                <button>Add Card</button>
+                <button type="submit">Create Deck</button>
+            </div>
+        </form>
+    </div>
+{% endblock %}

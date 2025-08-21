@@ -1,11 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flashcard - Study Tool</title>
-</head>
-<body>
-    <p>I am about to make a Flashcard Webapp!</p>
-</body>
-</html>
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+    <header>
+        <h1>Flashcard Study Tool</h1>
+        <p>A tool to simplify studying!</p>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="/">My Decks</a></li>
+            <li><a href="/statistics">Statistics</a></li>
+            <li><a href="/login">Login</a></li>
+            <li><a href="/register">Register</a></li>
+        </ul>
+    </nav>
+    <div>
+<!--    {% for loop here %}
+            <div>
+                Name
+                desription
+                Progress
+                study
+                delete
+            </div>
+        {% endfor %}    -->
+    </div>
+    <button onclick="func_here()">Add Deck</button>
+{% endblock %}
