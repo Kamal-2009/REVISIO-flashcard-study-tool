@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Study
+{% endblock %}
+
+{% block main %}
+    <div>
+        <p>Deck: {{ deck_name }}</p>
+        <p id="progress"></p>
+    </div>
+    <div id="study_mode">
+        <button onclick="loadCards({{ deck_id }})">Start</button>
+    </div>
+{% endblock %}

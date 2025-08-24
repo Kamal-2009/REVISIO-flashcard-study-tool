@@ -13,20 +13,40 @@
         <ul>
             <li><a href="/">My Decks</a></li>
             <li><a href="/statistics">Statistics</a></li>
-            <li><a href="/login">Login</a></li>
-            <li><a href="/register">Register</a></li>
+            {% if user %}
+                <li>{{ user }}</li>
+                <li><a href="/logout">Logout</a></li>
+            {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+            {% endif %}
         </ul>
     </nav>
     <div>
-<!--    {% for loop here %}
+        {% with messages = get_flashed_messages(with_categories = true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <p class="{{ category }}">
+                        {{ message }}
+                    </p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% for deck in decks %}
             <div>
-                Name
-                desription
-                Progress
-                study
-                delete
+                <p>deckname = {{ deck.name }}</p>
+                {% if deck.description %}
+                    <p>deckdescription = {{ deck.description }}</p>
+                {% endif %}
+                <form action="/study">
+                    <input type="text" name="deck_id" value="{{ deck.deck_id }}" hidden>
+                    <input type="text" name="deck_name" value="{{ deck.name }}" hidden>
+                    <button type="submit">Study</button>
+                    <button type="button" onclick="window.location.href='/delete_deck?deck_id={{ deck.deck_id }}'">Delete</button>
+                </form>
             </div>
-        {% endfor %}    -->
+        {% endfor %}
     </div>
-    <button onclick="func_here()">Add Deck</button>
+    <button onclick="window.location.href='/add_deck'">Add Deck</button>
 {% endblock %}

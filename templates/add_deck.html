@@ -7,17 +7,21 @@
 {% block main %}
     <div>
         <form action="/add_deck" method="post">
+            <fieldset>
+                <legend>Deck:</legend>
+                <input type="text" name="name" placeholder="Name" required>
+                <textarea name="description" placeholder="Description"></textarea> 
+                <input type="number" id="num_of_cards" name="num_of_cards" value="1" min = 1 max =10 hidden>
+            </fieldset>
+            <fieldset id="cards" >
+                <legend>Cards:</legend> 
+                <div>   
+                    <textarea name="question1" placeholder = "Question 1"></textarea>
+                    <textarea name="answer1" placeholder = "Answer 1"></textarea>
+                </div>
+            </fieldset>
             <div>
-                <input type="text" name="deckName" placeholder="Name" required>
-                <textarea name="deckDescription" placeholder="Description"></textarea> 
-            </div>
-            <div>
-                <input type="text" name="question" placeholder="Question">
-                <input typer="text" name="answer" placeholder="Answer">
-                <button>Delete</button>
-            </div>
-            <div>
-                <button>Add Card</button>
+                <button type="button" onclick="addCards()">Add Another Card</button>
                 <button type="submit">Create Deck</button>
             </div>
         </form>

@@ -5,6 +5,18 @@
 {% endblock %}
 
 {% block main %}
+
+    {% with messages = get_flashed_messages(with_categories = true) %}
+        {% if messages %}
+            <ul>
+                {% for category, message in messages %}
+                <li class="{{ category }}">
+                    {{ message | safe }}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endwith %}
     <form action="/register" method="post">
         <input typer="text" name="username" placeholder="Username" required>
         <input type="email" name="email" placeholder="Email" required>
