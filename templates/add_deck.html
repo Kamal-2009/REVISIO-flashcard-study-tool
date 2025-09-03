@@ -5,25 +5,72 @@
 {% endblock %}
 
 {% block main %}
-    <div>
-        <form action="/add_deck" method="post">
-            <fieldset>
-                <legend>Deck:</legend>
-                <input type="text" name="name" placeholder="Name" required>
-                <textarea name="description" placeholder="Description"></textarea> 
-                <input type="number" id="num_of_cards" name="num_of_cards" value="1" min = 1 max =10 hidden>
-            </fieldset>
-            <fieldset id="cards" >
-                <legend>Cards:</legend> 
-                <div>   
-                    <textarea name="question1" placeholder = "Question 1"></textarea>
-                    <textarea name="answer1" placeholder = "Answer 1"></textarea>
-                </div>
-            </fieldset>
-            <div>
-                <button type="button" onclick="addCards()">Add Another Card</button>
-                <button type="submit">Create Deck</button>
+    <div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header primary-bg text-white">
+            <h5 class="mb-0">Create Deck</h5>
             </div>
-        </form>
+
+            <div class="card-body">
+            <form action="/add_deck" method="post" id="deckForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Deck info -->
+                <div class="mb-3">
+                <label for="name" class="form-label">Deck Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="e.g., Biology Basics" required>
+                </div>
+
+                <div class="mb-4">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control no-resize" id="description" name="description" rows="2"
+                            placeholder="Optional short description (max 255 chars)"></textarea>
+                </div>
+
+                <!-- Hidden number-of-cards (server reads this) -->
+                <input type="hidden" id="num_of_cards" name="num_of_cards" value="1" min="1" max="10">
+
+                <!-- Cards section -->
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                <h6 class="mb-0">Cards</h6>
+                <span class="badge bg-secondary" id="cardCountBadge">1 / 10</span>
+                </div>
+
+                <fieldset id="cards" class="border rounded p-3">
+                <!-- Card 1 -->
+                <div class="card mb-3 border-0">
+                    <div class="card-body p-0">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                        <label class="form-label" for="question1">Question 1</label>
+                        <textarea class="form-control no-resize" id="question1" name="question1" rows="3" placeholder="Enter question" required></textarea>
+                        </div>
+                        <div class="col-12 col-md-6">
+                        <label class="form-label" for="answer1">Answer 1</label>
+                        <textarea class="form-control no-resize" id="answer1" name="answer1" rows="3" placeholder="Enter answer" required></textarea>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+                </fieldset>
+
+                <!-- Actions -->
+                <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-outline-secondary" id="addCardBtn" onclick="addCards()">
+                    <i class="bi bi-plus-lg me-1"></i> Add another card
+                </button>
+                <button type="submit" class="btn primary-btn ms-auto">
+                    Create Deck
+                </button>
+                </div>
+            </form>
+            </div>
+
+        </div>
+        </div>
     </div>
+    </div>
+
 {% endblock %}
