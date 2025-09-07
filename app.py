@@ -74,7 +74,7 @@ def add_deck():
         name = request.form.get("name")
         description = request.form.get("description") or ""
 
-        # check for input type in no of cards
+        # check for input type in no of cards32312322
         try:
             num_of_cards = int(request.form.get("num_of_cards"))
         except (TypeError, ValueError):
