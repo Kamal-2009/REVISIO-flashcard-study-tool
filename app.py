@@ -8,7 +8,7 @@ import os
 
 # Configure flask with sqlalchemy, sessions and csrf
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:Kamal%40182006@localhost:3306/flashcard"
+app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:yourPassword@localhost:3306/flashcard"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = os.urandom(24)
 csrf = CSRFProtect(app)
