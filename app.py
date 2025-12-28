@@ -4,11 +4,14 @@ from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 # Configure flask with sqlalchemy, sessions and csrf
 app = Flask(__name__)
-app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:yourPassword@localhost:3306/flashcard"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = os.urandom(24)
 csrf = CSRFProtect(app)
@@ -150,8 +153,12 @@ def load_cards():
     try:
         deck_id = int(request.args.get("deck_id"))
     except (TypeError, ValueError):
-        flash("Invalid Deck Id!", "danger")
-        return redirect("/")
+        # flash("Invalid Deck Id!", "danger")
+        # return redirect("/")
+        return jsonify({
+            "success": False,
+            "error": "Invalid Deck"
+        }), 400
 
     # get cards belonging to deck
     cards = Card.query.filter_by(did = deck_id).all()
