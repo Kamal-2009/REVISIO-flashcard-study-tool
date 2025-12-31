@@ -1,4 +1,5 @@
 from flask import Flask, flash,jsonify, redirect, render_template, request, session
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import or_
@@ -11,10 +12,10 @@ load_dotenv()
 
 # Configure flask with sqlalchemy, sessions and csrf
 app = Flask(__name__)
+CORS(app)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.secret_key = os.urandom(24)
-csrf = CSRFProtect(app)
 db = SQLAlchemy(app)
 
 # sqlalchemy ORMs
@@ -59,6 +60,30 @@ def index():
     
     # logged in
     return render_template('index.html', user = session["user"], decks = user.decks)
+
+@app.route('/load_decks')
+def load_decks():
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "error": "Log In to access decks"
+        }), 400
+    
+    user = User.query.filter_by(username = session["user"]).first()
+
+    if not user:
+        return jsonify({
+            "success": False,
+            "error": "User not found!"
+        }), 404
+    
+    response = ({ deck.did : { "name": deck.name, "description": deck.description }} for deck in user.decks)
+    
+    return jsonify({
+        "success": True,
+        "decks": response
+    }), 200
+
 
 # add decks
 @app.route('/add_deck', methods = ["GET", "POST"])
@@ -177,30 +202,41 @@ def login():
     # form submitted
     if request.method == "POST":
         # get username, password from query
-        name = request.form.get("username")
-        password = request.form.get("password")
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Bad Request"}), 400
+        name = data.get("username")
+        password = data.get("password")
 
         # name/password not entered
         if not name or not password:
-            flash("Username and Password is Required!", "warning")
-            return redirect("/login")
+            return jsonify({
+                "success": False,
+                "error": "Username and Password is Required!"
+            }), 400
 
         # query for user
         user = User.query.filter_by(username = name).first()
         # user not found, register
         if not user:
-            flash("Username Not Found. <a href='/register'>Register here</a>", "warning")
-            return redirect("/login")
+            return jsonify({
+                "success": False,
+                "error": "Username Not Found!"
+            }), 404
         
         # check password
         if not check_password_hash(user.hash, password):
-            flash("Invalid Password.", "warning")
-            return redirect("/login")
+            return jsonify({
+                "success": False,
+                "error": "Invalid Password!"
+            }), 400
         
         # save session
         session["user"] = name
-        flash("Logged in Successfully!", "success")
-        return redirect("/")
+        return jsonify({
+            "success": True,
+            "message": "Logged in Successfully!"
+        }), 200
 
     # load form
     else:
@@ -218,22 +254,29 @@ def logout():
 def register():
     if request.method == "POST":
         # get user details from form
-        name = request.form.get("username")
-        email = request.form.get("email")
-        password = request.form.get("password")
-        confirm_password = request.form.get("cnf_pass")
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Bad Request"}), 400
+        name = data.get("username")
+        email = data.get("email")
+        password = data.get("password")
+        confirm_password = data.get("cnfmpass")
 
         # user already exists in database
         existing_user = User.query.filter(or_(User.username == name, User.email == email)).first()
         if existing_user:
-            flash("Username or email already exists", "info")
-            return redirect("/register")
+            return jsonify({
+                "success": False,
+                "error": "Username/Email already exists"
+            }), 409
         
         # confirm password
         if password != confirm_password:
-            flash("Passwords do not match", "warning")
-            return redirect("/register")
-        
+            return jsonify({
+                "success": False,
+                "error": "Passwords do not match"
+            }), 400
+
         # generate password hash and create ORM for new user
         hashed_password = generate_password_hash(password)
         new_user = User(username = name, email = email, hash = hashed_password)
@@ -242,12 +285,16 @@ def register():
         try:
             db.session.add(new_user)
             db.session.commit()
-            flash("Registration Successful!", "success")
-            return redirect("/login")
+            return jsonify({
+                "success": True,
+                "message": "Registration Successful!!"
+            }), 201
         except IntegrityError:
             db.session.rollback()
-            flash("Something went wrong. Try again.", "danger")
-            return redirect("/register")
+            return jsonify({
+                "success": False,
+                "error": "Something Went wrong!"
+            }), 500
     # render registration form
     else:
         return render_template('register.html')
