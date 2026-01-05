@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login({onSuccess}) {
     const [user, setUser] = useState({
@@ -7,11 +7,13 @@ function Login({onSuccess}) {
         password: ""
     });
     const [error, setError] = useState("")
+    const navigate = useNavigate()
 
     async function Auth(n, p) {
         /* perform authentication by fetching from route */
-        const response = await fetch("http://127.0.0.1:5000/login", {
+        const response = await fetch("http://localhost:5000/login", {
             method: "POST",
+            credentials: "include",
             headers: {
                 "content-type": "application/json"
             },
@@ -27,6 +29,7 @@ function Login({onSuccess}) {
         } else {
             alert("Login Successful!")
             onSuccess()
+            navigate("/")
             return
         }
     }

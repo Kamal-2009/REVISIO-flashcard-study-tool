@@ -12,9 +12,17 @@ load_dotenv()
 
 # Configure flask with sqlalchemy, sessions and csrf
 app = Flask(__name__)
-CORS(app)
+CORS(
+    app,
+    supports_credentials=True,
+    origins=["http://localhost:5173"]
+)
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config.update(
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=False  # must be False on HTTP
+)
 app.secret_key = os.urandom(24)
 db = SQLAlchemy(app)
 
@@ -67,7 +75,7 @@ def load_decks():
         return jsonify({
             "success": False,
             "error": "Log In to access decks"
-        }), 400
+        }), 401
     
     user = User.query.filter_by(username = session["user"]).first()
 
@@ -77,8 +85,9 @@ def load_decks():
             "error": "User not found!"
         }), 404
     
-    response = ({ deck.did : { "name": deck.name, "description": deck.description }} for deck in user.decks)
-    
+    # response = [{ deck.deck_id : { "name": deck.name, "description": deck.description } for deck in user.decks } ]
+    response = [{ "deck_id": deck.deck_id, "name": deck.name, "description": deck.description} for deck in user.decks]
+
     return jsonify({
         "success": True,
         "decks": response
@@ -93,33 +102,32 @@ def add_deck():
 
     # if not logged in
     if not username:
-        flash("You must be logged in to create a deck", "info")
-        return redirect("/login")
+        return jsonify({
+            "success": False,
+            "error": "Log In to create a deck!"
+        }), 401
 
     # Create deck
     if request.method == "POST":
         # get name and description
-        name = request.form.get("name")
-        description = request.form.get("description") or ""
-
-        # check for input type in no of cards32312322
-        try:
-            num_of_cards = int(request.form.get("num_of_cards"))
-        except (TypeError, ValueError):
-            # Wrong type
-            flash("Number of Cards must be an Integer!", "danger")
-            return redirect("/add_deck") 
+        data = request.get_json()
+        if not data:
+            return jsonify({"success": False, "error": "Bad Request"}), 400
+        name = data.get("name")
+        description = data.get("description")
+        cards = data.get("cards")
         
         # confirm data specifications
         if not name:
-            flash("Name is Required.", "info")
-            return redirect("/add_deck")
+            return jsonify({
+                "success": False,
+                "error": "Name is required"
+            }), 400
         elif len(description) > 255:
-            flash("Description must be less than 255 characters!", "info")
-            return redirect("/add_deck")
-        elif num_of_cards < 1 or num_of_cards > 10:
-            flash("Range: 1-10", "warning")
-            return redirect("/add_deck")
+            return jsonify({
+                "success": False,
+                "error": "Description must be less than 255 characters!"
+            }), 400
         
         # Add deck and card data return to default route
         user = User.query.filter_by(username = username).first()
@@ -127,21 +135,25 @@ def add_deck():
             new_deck = Deck(name = name, description = description)
             user.decks.append(new_deck)
         else:
-            flash("User not found", "danger")
-            return redirect("/")
+            return jsonify({
+                "success": False, 
+                "error": "User not Found!"
+            }), 404
         
-        for i in range(1, num_of_cards + 1):
-            ques =  request.form.get(f"question{i}")
-            ans = request.form.get(f"answer{i}")
-
+        for card in cards:
+            ques = card.get("ques")
+            ans = card.get("ans")
             if not ques or not ans:
                 continue
-
+            
             new_card = Card(ques = ques, ans = ans)
             new_deck.cards.append(new_card)
+
         db.session.commit()
-        flash("Deck Added Successfully!", "success")
-        return redirect("/")
+        return jsonify({
+            "success": True,
+            "message": "Deck added Successfully!"
+        })
     
     # fill form to create deck
     else:
@@ -172,18 +184,29 @@ def delete_deck():
         return redirect("/")
     
 # load all cards from a given deck 
-@app.route('/load_cards')
-def load_cards():
-    # parse deck_id, must be an int
-    try:
-        deck_id = int(request.args.get("deck_id"))
-    except (TypeError, ValueError):
-        # flash("Invalid Deck Id!", "danger")
-        # return redirect("/")
+@app.route('/load_cards/<int:deck_id>')
+def load_cards(deck_id):
+    if "user" not in session:
+        return jsonify ({
+            "success": False,
+            "error": "User not logged in!" 
+        }), 401
+    
+    user = User.query.filter_by(username = session["user"]).first()
+
+    if not user:
         return jsonify({
             "success": False,
-            "error": "Invalid Deck"
-        }), 400
+            "error": "User not found!"
+        }), 404
+    
+    if deck_id not in [deck.deck_id for deck in user.decks]:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized access"
+        }), 403
+    
+    deck = Deck.query.filter_by(deck_id = deck_id).first()
 
     # get cards belonging to deck
     cards = Card.query.filter_by(did = deck_id).all()
@@ -194,7 +217,11 @@ def load_cards():
         for c in cards
     ]
     # return json response
-    return jsonify(cards_dict)
+    return jsonify({
+        "success": True,
+        "deck": {"name": deck.name, "description": deck.description},
+        "cards": cards_dict
+    }), 200
 
 # login
 @app.route('/login', methods = ["GET", "POST"])
@@ -247,7 +274,10 @@ def login():
 def logout():
     # clear user credentials and redirect
     session.clear()
-    return redirect("/")
+    return jsonify({
+        "success": True,
+        "message": "Logged Out Successfully!"
+    }), 200
 
 # register
 @app.route('/register', methods = ["GET", "POST"])
@@ -310,3 +340,14 @@ def study():
         return redirect("/")
     return render_template("study.html", deck_name = deck_name, deck_id = deck_id)
 
+@app.route('/me')
+def me():
+    if "user" not in session:
+        # not logged in
+        return jsonify({
+            "logged_in": False
+        })
+    
+    return jsonify({
+        "logged_in": True
+   })
