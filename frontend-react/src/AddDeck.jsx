@@ -80,40 +80,64 @@ function AddDeck() {
     }
 
     return (
-        <>
-            <form onSubmit={handleSubmit}>
-                <label>Enter Deck name:
-                    <input 
-                        type="text" name="name" 
-                        value={deck.name} onChange={handleChange}
-                    />
-                </label> <br/>
-                <label>Enter Deck desription
-                    <input 
-                        type="text" name="description" 
-                        value={deck.description} onChange={handleChange} 
-                    />
-                </label> <br/>
-                {cards.map((card, index) => (
-                    <label key={card.id}>Card {index + 1}:
-                        <input 
-                            type="text" name="ques" 
-                            value={card.ques} placeholder={`Question ${index + 1}`} 
-                            onChange={(e) => handleCardChange(index, e.target.name, e.target.value)} 
-                        /> 
-                        <br />
-                        <input 
-                            type="text" name="ans" 
-                            value={card.ans} placeholder={`Answer ${index + 1}`} 
-                            onChange={(e) => handleCardChange(index, e.target.name, e.target.value)} 
-                        /> 
-                        <br/>
+        <div className="min-h-dvh flex items-center justify-center">
+            <div className="border border-[#9381ff]/30 rounded-xl bg-[#ffeedd]/20 text-[#1f2937] p-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="flex flex-col items-start w-full">
+                <label className="block text-sm font-medium">
+                    Enter Deck name:
+                </label>
+                <input 
+                    type="text" name="name" 
+                    value={deck.name} onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 rounded-md
+                            border border-[#9381ff]/30
+                            focus:outline-none
+                            focus:border-[#9381ff]
+                            focus:ring-1 focus:ring-[#9381ff]/50
+                            transition duration-300"
+                />
+                </div>
+
+                <div className="flex flex-col items-start w-full">
+                <label className="block text-sm font-medium">
+                    Enter Deck desription:
+                </label>        
+                <input 
+                    type="text" name="description" 
+                    value={deck.description} onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 rounded-md
+                            border border-[#9381ff]/30
+                            focus:outline-none
+                            focus:border-[#9381ff]
+                            focus:ring-1 focus:ring-[#9381ff]/50
+                            transition duration-300" 
+                />
+                </div>
+
+                <div>
+                {cards.map((card, index) => (<>
+                    <label key={card.id}>
+                        Card {index + 1}:
                     </label> 
+                    <input 
+                        type="text" name="ques" 
+                        value={card.ques} placeholder={`Question ${index + 1}`} 
+                        onChange={(e) => handleCardChange(index, e.target.name, e.target.value)} 
+                    /> 
+                    <input 
+                        type="text" name="ans" 
+                        value={card.ans} placeholder={`Answer ${index + 1}`} 
+                        onChange={(e) => handleCardChange(index, e.target.name, e.target.value)} 
+                    />  
+                    </>
                 ))}
+                </div>
                 <button type="button" onClick={addCard}>Add another Card</button>
                 <button type="submit">Submit</button>
             </form>
-        </>
+            </div>
+        </div>
     )
 }
 

@@ -51,51 +51,112 @@ function Register() {
     }
 
     return (
-        <>
-        <h1>Register</h1>
-        <form onSubmit={handleSubmit}>
-            <label>Username:
+        <div className="flex min-h-dvh items-center justify-center">
+            <div className="bg-[#ffeedd]/20 rounded-lg overflow-hidden border border-[#9381ff]/30 pb-8 w-lg">
+            <h1 className="bg-[#9381ff] rounded-b-lg px-6 py-5 text-4xl text-center font-semibold leading-tight text-[#f8f7ff]">
+                Register
+            </h1>
+            <form onSubmit={handleSubmit} className="p-6 text-[#1f2937] space-y-4">
+                <div className="flex flex-col items-start w-full">
+                <label className="block text-sm font-medium">
+                    Username:
+                </label>
                 <input
                     type="text"
                     name="username"
                     value={inputs.username}
                     onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 rounded-md
+                            border border-[#9381ff]/30
+                            focus:outline-none
+                            focus:border-[#9381ff]
+                            focus:ring-1 focus:ring-[#9381ff]/50
+                            transition duration-300"
                 />
-            </label>
-            <br/><br/>
-            <label>Email:
+                </div>
+
+                <div className="flex flex-col items-start w-full">
+                <label className="block text-sm font-medium ">
+                    Email
+                </label>
                 <input
                     type="email"
                     name="email"
                     value={inputs.email}
-                    onChange={handleChange}    
+                    onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 rounded-md
+                            border border-[#9381ff]/30
+                            focus:outline-none
+                            focus:border-[#9381ff]
+                            focus:ring-1 focus:ring-[#9381ff]/50
+                            transition duration-300"
                 />
-            </label>
-            <br/><br/>
-            <label>Password:
+                </div>
+
+                <div className="flex flex-col items-start w-full">
+                <label className="block text-sm font-medium ">
+                    Password
+                </label>
                 <input
                     type="password"
                     name="password"
                     value={inputs.password}
                     onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 rounded-md
+                            border border-[#9381ff]/30
+                            focus:outline-none
+                            focus:border-[#9381ff]
+                            focus:ring-1 focus:ring-[#9381ff]/50
+                            transition duration-300"
                 />
-            </label>
-            <br/><br/>
-            <label>Confirm Password:
+                </div>
+
+                <div className="flex flex-col items-start w-full">
+                <label className="block text-sm font-medium">
+                    Confirm Password
+                </label>
                 <input
                     type="password"
                     name="cnfmpass"
                     value={inputs.cnfmpass}
                     onChange={handleChange}
+                    className="w-full mt-1 px-3 py-2 rounded-md
+                            border border-[#9381ff]/30
+                            focus:outline-none
+                            focus:border-[#9381ff]
+                            focus:ring-1 focus:ring-[#9381ff]/50
+                            transition duration-300"
                 />
-            </label>
-            <br/><br/>
-            {error && <p>{error}</p>}
-            <br/>
-            <button type="submit">Register</button>
-        </form>
-        <p>Already have an Account?<Link to="/login">Login</Link></p>
-        </>
+                </div>
+
+                {error && (
+                <p className="text-sm text-center text-[#6f1a07]!">
+                    {error}
+                </p>
+                )}
+
+                <button
+                type="submit"
+                className="w-full bg-[#9381FF] text-[#f8f7ff]
+                            py-2 rounded-md
+                            font-medium
+                            hover:opacity-90
+                            transition-colors duration-300"
+                >
+                Register
+                </button>
+
+            </form>
+
+            <p className="text-center text-sm text-[#2b2118]">
+                Already have an account?{" "}
+                <Link to="/login" className="font-medium underline! hover:opacity-80">
+                Login
+                </Link>
+            </p>
+
+            </div>
+        </div>
     )
 
 }

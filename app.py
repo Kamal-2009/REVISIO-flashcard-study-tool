@@ -51,24 +51,6 @@ class User(db.Model):
     hash = db.Column(db.String(255), nullable = False)
     decks = db.relationship("Deck", back_populates="user", lazy = True, cascade="all, delete")
 
-# default route
-@app.route('/')
-def index():
-    # if not logged in
-    if "user" not in session:
-        return render_template("index.html")
-    
-    user = User.query.filter_by(username = session["user"]).first()
-
-    # user not found
-    if not user:
-        flash("Error logging In! User not found", "danger")
-        session.clear()
-        return redirect("/login")
-    
-    # logged in
-    return render_template('index.html', user = session["user"], decks = user.decks)
-
 @app.route('/load_decks')
 def load_decks():
     if "user" not in session:
@@ -86,13 +68,12 @@ def load_decks():
         }), 404
     
     # response = [{ deck.deck_id : { "name": deck.name, "description": deck.description } for deck in user.decks } ]
-    response = [{ "deck_id": deck.deck_id, "name": deck.name, "description": deck.description} for deck in user.decks]
+    response = [{ "deck_id": deck.deck_id, "name": deck.name, "description": deck.description, "num": len(deck.cards)} for deck in user.decks]
 
     return jsonify({
         "success": True,
         "decks": response
     }), 200
-
 
 # add decks
 @app.route('/add_deck', methods = ["GET", "POST"])
@@ -163,11 +144,7 @@ def add_deck():
 @app.route('/delete_deck', methods=["POST"])
 def delete_deck():
     # get deck id and cast into int, return error if invalid datatype
-    try:
-        did = int(request.form.get("deck_id"))
-    except (TypeError, ValueError):
-        flash("Invalid deck id!", "warning")
-        return redirect("/")
+    did = request.get_json()
     
     # get deck from Deck table
     deck = Deck.query.get(did)
@@ -176,12 +153,16 @@ def delete_deck():
     if deck:
         db.session.delete(deck)
         db.session.commit()
-        flash("Deck deleted Successfully!", "success")
-        return redirect("/")
+        return jsonify({
+            "success": True
+        }), 200
     # if deck not found
     else:
         flash("Deck not found!", "warning")
-        return redirect("/")
+        return jsonify({
+            "success": False,
+            "error": "Deck not found!"
+        }), 404
     
 # load all cards from a given deck 
 @app.route('/load_cards/<int:deck_id>')
@@ -328,17 +309,6 @@ def register():
     # render registration form
     else:
         return render_template('register.html')
-
-# study a deck
-@app.route('/study')
-def study():
-    # extract deck id and name
-    deck_id = request.args.get("deck_id")
-    deck_name = request.args.get("deck_name")
-    if not deck_id or not deck_name:
-        flash("error accessing deck", "warning")
-        return redirect("/")
-    return render_template("study.html", deck_name = deck_name, deck_id = deck_id)
 
 @app.route('/me')
 def me():

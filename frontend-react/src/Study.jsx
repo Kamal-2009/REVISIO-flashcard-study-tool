@@ -34,12 +34,12 @@ function Study() {
             <p>Description: {deck.description}</p>
             <p>Deck Id: {deck_id}</p>
             <p>Cards: </p>
-            {cards.map(card => {
+            {cards.map(card => (
                 <li key={card.card_id}>
                     Question: {card.ques} <br/>
                     Answer: {card.ans}
                 </li>
-            })}
+            ))}
         </>
     )
 }
