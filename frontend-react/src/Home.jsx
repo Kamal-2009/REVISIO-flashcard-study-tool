@@ -84,13 +84,13 @@ function Home({onLogout}) {
                             <div className="bg-[#9381FF] w-10 h-10 rounded-[10px] flex items-center justify-center">
                                 <img src={logo} alt="Logo" className="h-8 w-auto invert"/>
                             </div>
-                            <h1 className="ml-4 font-semibold text-4xl">Revisio</h1>
+                            <h1 className="ml-4 font-semibold text-4xl relative -top-px">Revisio</h1>
                         </div>
                         <div className="flex text-lg">
                             <button onClick={handleLogout} className="text-[#9381ff] transition duration-300 hover:underline hover:text-inherit mx-4">Logout</button>
                             <button onClick={() => navigate('/add_deck')} className="bg-[#9381FF] rounded-[10px] p-2 flex hover:opacity-80 transition duration-300">
                                 <img src={plus} alt="add" className="h-7 w-auto invert mr-2"/> 
-                                Create Deck
+                                <span className="relative -top-[0.75px]">Create Deck</span>
                             </button>
                         </div>
                         </div>
@@ -117,17 +117,17 @@ function Home({onLogout}) {
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center">
                                         <img src={logo} alt="Logo" className="h-8 w-auto pr-2"/>
-                                        <h4 className="text-2xl">{deck.name}</h4>
+                                        <h4 className="text-2xl line-clamp-1">{deck.name}</h4>
                                         </div>
                                         <p className="opacity-70 text-sm font-[350]">{deck.num} cards</p>
                                     </div>
-                                    <p className="opacity-80 py-2">{deck.description} </p>
+                                    <p className="opacity-80 py-2 line-clamp-3">{deck.description} </p>
                                     <div className="flex gap-2 pt-4">
                                     <button 
                                         onClick={() => navigate(`/study/deck/${deck.deck_id}`)}
                                         className="flex grow justify-center items-center bg-[#9381FF] text-[#F8F7FF] rounded-lg px-2 py-1 hover:opacity-80 transition duration-300">
                                         <img src={play} alt="play" className="h-7 w-auto invert py-1 pr-1"/>
-                                        Study
+                                        <span className="relative -top-[0.85px]">Study</span>
                                     </button>
                                     <button 
                                         onClick={handleEdit}
