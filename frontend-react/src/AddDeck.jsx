@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 
 function AddDeck() {
     const [deck, setDeck] = useState({
@@ -10,6 +11,7 @@ function AddDeck() {
         {id: crypto.randomUUID(), ques: "", ans: ""},
         {id: crypto.randomUUID(), ques: "", ans: ""}
     ])
+    const navigate = useNavigate()
 
     async function submitData() {
         const response = await fetch("http://localhost:5000/add_deck", {
@@ -32,6 +34,7 @@ function AddDeck() {
             return
         }
         else {
+            navigate('/')
             alert(data.message)
             return
         }
@@ -79,62 +82,126 @@ function AddDeck() {
         return
     }
 
+    const clearFields = () => {
+        setDeck({
+            name: "",
+            description: ""
+        })
+        setCards([
+            {id: crypto.randomUUID(), ques: "", ans: ""},
+            {id: crypto.randomUUID(), ques: "", ans: ""},
+            {id: crypto.randomUUID(), ques: "", ans: ""}
+        ])
+        return
+    }
+
     return (
         <div className="min-h-dvh flex items-center justify-center">
-            <div className="border border-[#9381ff]/30 rounded-xl bg-[#ffeedd]/20 text-[#1f2937] p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="flex flex-col items-start w-full">
-                <label className="block text-sm font-medium">
-                    Enter Deck name:
-                </label>
-                <input 
-                    type="text" name="name" 
-                    value={deck.name} onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
-                            focus:outline-none
-                            focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
-                            transition duration-300"
-                />
+            <div className="bg-[#ffeedd]/20 rounded-lg overflow-hidden border border-[#9381ff]/30 pb-8 w-lg md:w-4xl">
+            <h1 className="bg-[#9381ff] rounded-b-lg px-6 py-5 text-4xl text-center font-semibold leading-tight text-[#f8f7ff]">
+                Create New Deck
+            </h1>
+            
+            <form onSubmit={handleSubmit} className="text-[#1f2937] space-y-4">
+                <div className="px-6 pt-2 ">    
+                    <div className="pt-4">
+                    <h4 className="text-lg">Deck details</h4>
+                    <p className="opacity-70">Give your flashcard deck a name and description</p>
+                    </div>
+                    <div className="flex flex-col items-start w-full pt-1">
+                    <label className="block text-sm font-medium">
+                        Deck Name:
+                    </label>
+                    <input 
+                        type="text" name="name" 
+                        value={deck.name} onChange={handleChange}
+                        className="w-full mt-1 px-3 py-2 rounded-md
+                                bg-[#b8b8ff40]
+                                border border-[#9381ff]/20
+                                focus:outline-none
+                                focus:border-[#9381ff]
+                                focus:ring-1 focus:ring-[#9381ff]
+                                transition duration-300"
+                        placeholder="e.g., Spanish Vocabulary, Biology Terms"
+                    />
+                    <p className="text-xs font-light py-1 opacity-80">Choose a clear, descriptive name for your deck</p>
+                    </div>
+
+                    <div className="flex flex-col items-start w-full">
+                    <label className="block text-sm font-medium">
+                        Desrciption (Optional):
+                    </label>        
+                    <textarea 
+                        name="description" 
+                        value={deck.description} onChange={handleChange}
+                        className="w-full h-24 mt-1 px-3 py-2 rounded-md
+                                bg-[#b8b8ff40] 
+                                border border-[#9381ff]/20
+                                focus:outline-none resize-none
+                                focus:border-[#9381ff]
+                                focus:ring-1 focus:ring-[#9381ff]
+                                transition duration-300"
+                        placeholder="What will you be studying with this deck?" 
+                    />
+                    <p className="text-xs font-light py-1 opacity-80">Add notes about what this deck covers</p>
+                    </div>
                 </div>
 
-                <div className="flex flex-col items-start w-full">
-                <label className="block text-sm font-medium">
-                    Enter Deck desription:
-                </label>        
-                <input 
-                    type="text" name="description" 
-                    value={deck.description} onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
-                            focus:outline-none
-                            focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
-                            transition duration-300" 
-                />
-                </div>
+                <hr className="text-[#9381ff]/30"/>
 
-                <div>
-                {cards.map((card, index) => (<>
-                    <label key={card.id}>
+                <div className="px-6 pt-2">
+                    <div>
+                    <h4 className="text-lg">Flashcards</h4>
+                    <p className="opacity-70">Add questions and answers to your deck</p>
+                    </div>
+                    
+                {cards.map((card, index) => (
+                    <div key={card.id} className="flex flex-col items-start w-full pt-4 space-y-2">
+                    <label className="block text-sm font-medium">
                         Card {index + 1}:
                     </label> 
-                    <input 
-                        type="text" name="ques" 
-                        value={card.ques} placeholder={`Question ${index + 1}`} 
-                        onChange={(e) => handleCardChange(index, e.target.name, e.target.value)} 
+                    <textarea
+                        name="ques" 
+                        value={card.ques} placeholder="Enter your question here..." 
+                        onChange={(e) => handleCardChange(index, e.target.name, e.target.value)}
+                        className="w-full h-24 mt-1 px-3 py-2 rounded-md
+                                bg-[#b8b8ff40] 
+                                border border-[#9381ff]/20
+                                focus:outline-none resize-none
+                                focus:border-[#9381ff]
+                                focus:ring-1 focus:ring-[#9381ff]
+                                transition duration-300" 
                     /> 
-                    <input 
-                        type="text" name="ans" 
-                        value={card.ans} placeholder={`Answer ${index + 1}`} 
-                        onChange={(e) => handleCardChange(index, e.target.name, e.target.value)} 
+                    <textarea
+                        name="ans" 
+                        value={card.ans} placeholder="Enter your answer here" 
+                        onChange={(e) => handleCardChange(index, e.target.name, e.target.value)}
+                        className="w-full h-24 mt-1 px-3 py-2 rounded-md
+                                bg-[#b8b8ff40] 
+                                border border-[#9381ff]/20
+                                focus:outline-none resize-none
+                                focus:border-[#9381ff]
+                                focus:ring-1 focus:ring-[#9381ff]
+                                transition duration-300" 
                     />  
-                    </>
+                    </div>
                 ))}
+                
+                <button type="button" onClick={addCard} className="bg-[#9381ff] text-[#f8f7ff] w-full rounded-md py-2 mt-2 hover:opacity-80 transition duration-300">
+                    Add another Card
+                </button>
                 </div>
-                <button type="button" onClick={addCard}>Add another Card</button>
-                <button type="submit">Submit</button>
+
+                <hr className="text-[#9381ff]/30"/>
+                
+                <div className="grid grid-cols-2 py-2 px-6 gap-4">
+                <button type="reset" onClick={clearFields} className="border rounded-md py-2 text-[#9381ff] border-[#9381ff] hover:bg-gray-200 transition duration-300">
+                    Clear
+                </button>
+                <button type="submit" className="bg-[#9381ff] text-[#f8f7ff]  py-2 rounded-md hover:opacity-80 transition duration-300">
+                    Create deck
+                </button>
+                </div>
             </form>
             </div>
         </div>
