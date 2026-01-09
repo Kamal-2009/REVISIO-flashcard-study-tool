@@ -164,6 +164,65 @@ def delete_deck():
             "error": "Deck not found!"
         }), 404
     
+@app.route('/edit_deck', methods=["POST"])
+def edit_deck():
+    if "user" not in session:
+        return jsonify({
+            "success": False,
+            "error": "User not logged in!"
+        }), 401
+    
+    user = User.query.filter_by(username = session["user"]).first()
+
+    if not user:
+        return jsonify({
+            "success": False,
+            "error": "User not found!"
+        }), 404
+    
+    data = request.get_json()
+    if not data:
+        return jsonify({ "success": False, "error": "Bad Request"}), 400
+    deck_id = int(data.get("deck_id"))
+    new_name = data.get("name")
+    new_description = data.get("description")
+    new_cards = data.get("cards")
+
+    if deck_id not in [deck.deck_id for deck in user.decks]:
+        return jsonify({
+            "success": False,
+            "error": "Unauthorized access"
+        }), 403
+    
+    deck = Deck.query.filter_by(deck_id = deck_id).first()
+    deck.name = new_name
+    deck.description = new_description
+
+    cards = Card.query.filter_by(did = deck_id).all()
+
+    for card in cards:
+        for new_card in new_cards:
+            if card.card_id == new_card["card_id"]:
+                card.ques = new_card["ques"]
+                card.ans = new_card["ans"]
+
+    for new_card in new_cards:
+        if new_card["card_id"] not in [card.card_id for card in cards]:
+            deck.cards.append(Card(ques = new_card["ques"], ans = new_card["ans"]))
+
+    try:
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "message": "Deck Edited Succcessfuly!"
+        }), 200
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "error": "Something went wrong!"
+        }), 500
+
 # load all cards from a given deck 
 @app.route('/load_cards/<int:deck_id>')
 def load_cards(deck_id):

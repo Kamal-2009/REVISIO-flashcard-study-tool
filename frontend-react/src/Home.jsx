@@ -6,6 +6,7 @@ import logo from "./assets/logo.svg"
 import plus from "./assets/plus.svg"
 import edit from "./assets/edit.svg"
 import play from "./assets/play.svg"
+import EditDeck from "./EditDeck"
 
 function Home({onLogout}) {
     const [error, setError] = useState("")
@@ -60,11 +61,6 @@ function Home({onLogout}) {
         }
         loadDecks()
         return
-    }
-
-    const handleEdit = () => {
-        alert("Coming Soon!!")
-        return 
     }
 
     useEffect(() => {
@@ -130,7 +126,7 @@ function Home({onLogout}) {
                                         <span className="relative -top-[0.85px]">Study</span>
                                     </button>
                                     <button 
-                                        onClick={handleEdit}
+                                        onClick={() => navigate(`/edit/deck/${deck.deck_id}`)}
                                         className="rounded-lg px-2.5 py-1.5 border border-gray-300 transition duration-300 hover:bg-gray-200">
                                         <img src={edit} alt="Edit" className="h-5 w-auto"/>
                                     </button>
@@ -163,6 +159,7 @@ function Home({onLogout}) {
                 </div>} 
             />
             <Route path='/study/deck/:deck_id' element={<Study />} />
+            <Route path='/edit/deck/:deck_id' element={<EditDeck />} />
             <Route path='/add_deck' element={<AddDeck />} />
         </Routes>
         </>
