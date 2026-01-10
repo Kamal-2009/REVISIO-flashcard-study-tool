@@ -1,16 +1,24 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
-function AddDeck() {
+function AddDeck( { initialCards } ) {
     const [deck, setDeck] = useState({
         name: "",
         description: ""
     })
-    const [cards, setCards] = useState([
-        {id: crypto.randomUUID(), ques: "", ans: ""},
-        {id: crypto.randomUUID(), ques: "", ans: ""},
-        {id: crypto.randomUUID(), ques: "", ans: ""}
-    ])
+    const [cards, setCards] = useState([])
+    useEffect(() => {
+        if (initialCards === null) {
+            setCards([
+                {id: crypto.randomUUID(), ques: "", ans: ""},
+                {id: crypto.randomUUID(), ques: "", ans: ""},
+                {id: crypto.randomUUID(), ques: "", ans: ""}
+            ])
+        } else {
+            setCards(initialCards)
+        }
+    }, [initialCards])
+    
     const navigate = useNavigate()
 
     async function submitData() {

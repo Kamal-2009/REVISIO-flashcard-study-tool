@@ -7,6 +7,9 @@ from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
 import os
+import pymupdf
+from openai import OpenAI
+import json
 
 load_dotenv()
 
@@ -25,6 +28,7 @@ app.config.update(
 )
 app.secret_key = os.urandom(24)
 db = SQLAlchemy(app)
+client = OpenAI()
 
 # sqlalchemy ORMs
 class Card(db.Model):
@@ -380,3 +384,50 @@ def me():
     return jsonify({
         "logged_in": True
    })
+
+@app.route('/ai/generate', methods = ["POST"])
+def generate():
+    if "user" not in session:
+        return jsonify({
+            "success": False, 
+            "error": "User not Logged in"
+        }), 400
+    
+    f = request.files["file"]
+    pdf_bytes = f.read()
+    doc = pymupdf.Document(stream=pdf_bytes)
+    request_text = """You are a flashcard generator.
+                        Return ONLY valid JSON in this format:
+
+                        [
+                        { "id": "string", "ques": "string", "ans": "string" }
+                        ]
+
+                        Rules:
+                        - id must be a unique string for each card (e.g., a UUID)
+                        - No markdown
+                        - No explanations
+                        - No text before or after JSON
+                        - Generate high-quality questions and concise, correct answers
+
+                    Below is the content you will use: 
+                    
+"""
+    for page in doc:
+        text = page.get_text()
+        if not text:
+            tp = page.get_textpage_ocr()
+            text = page.get_text(textpage = tp)
+        request_text += text
+    
+    response = client.responses.create(
+        model="gpt-5-nano",
+        input=request_text
+    )
+    
+    generated_cards = json.loads(response.output_text)
+
+    return jsonify({ 
+        "success": True,
+        "cards": generated_cards
+    }), 200
