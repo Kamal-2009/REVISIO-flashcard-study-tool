@@ -1,7 +1,6 @@
-from flask import Flask, flash,jsonify, redirect, render_template, request, session
+from flask import Flask, flash,jsonify, request, session
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from flask_wtf.csrf import CSRFProtect
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
