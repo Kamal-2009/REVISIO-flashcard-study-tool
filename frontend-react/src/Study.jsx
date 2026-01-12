@@ -81,7 +81,7 @@ function Study() {
                         <p>{Math.round((curIndex+1)*100/total)}% Complete</p>
                     </div>
                     <div className="h-2 rounded-full bg-gray-300 overflow-hidden">
-                        <div className="h-full bg-[#9381FF] rounded-full" style={{ width:`${(curIndex+1)*100/total}%` }}></div>
+                        <div className="h-full bg-[#9381FF] rounded-full transition-[width] duration-600 ease-[cubic-bezier(0.4,1.4,0.6,1)]" style={{ width:`${(curIndex+1)*100/total}%` }}></div>
                     </div>
                 </div>
                 
@@ -101,9 +101,9 @@ function Study() {
                             border-[#9381ff]/30
                             absolute inset-0 items-center
                             backface-hidden">
-                            <p>QUESTION</p>
-                            <h2>{  cards[curIndex].ques  }</h2>
-                            <p>Click to reveal answer</p>
+                            <p className="text-gray-500 font-[350]">QUESTION</p>
+                            <h2 className="px-6 py-4 text-[#25224b] text-3xl font-semibold">{  cards[curIndex].ques  }</h2>
+                            <p className="p-4 text-sm text-gray-500 font-[350]">Click to reveal answer</p>
                         </div>
                         <div
                             className="border rounded-xl 
@@ -112,9 +112,9 @@ function Study() {
                             border-[#9381ff]/30
                             absolute inset-0 items-center
                             backface-hidden rotate-y-180">
-                            <p>ANSWER</p>
-                            <h2>{  cards[curIndex].ans  }</h2>
-                            <p>Click to see question</p>
+                            <p className="text-gray-500 font-[350]">ANSWER</p>
+                            <h2 className="px-6 py-4 text-[#25224b] text-2xl font-semibold">{  cards[curIndex].ans  }</h2>
+                            <p className="p-4 text-sm text-gray-500 font-[350]">Click to see question</p>
                         </div>
                     </div>
                     </div>

@@ -57,21 +57,24 @@ class User(db.Model):
 
 @app.route('/load_decks')
 def load_decks():
+    # Check if user logged in
     if "user" not in session:
         return jsonify({
             "success": False,
             "error": "Log In to access decks"
         }), 401
     
+    # get user details
     user = User.query.filter_by(username = session["user"]).first()
 
+    # user not found
     if not user:
         return jsonify({
             "success": False,
             "error": "User not found!"
         }), 404
     
-    # response = [{ deck.deck_id : { "name": deck.name, "description": deck.description } for deck in user.decks } ]
+    # make list of decks for JSON response
     response = [{ "deck_id": deck.deck_id, "name": deck.name, "description": deck.description, "num": len(deck.cards)} for deck in user.decks]
 
     return jsonify({
@@ -80,7 +83,7 @@ def load_decks():
     }), 200
 
 # add decks
-@app.route('/add_deck', methods = ["GET", "POST"])
+@app.route('/add_deck', methods = ['POST'])
 def add_deck():
     # Check if logged in
     username = session.get("user")
@@ -93,59 +96,63 @@ def add_deck():
         }), 401
 
     # Create deck
-    if request.method == "POST":
-        # get name and description
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "Bad Request"}), 400
-        name = data.get("name")
-        description = data.get("description")
-        cards = data.get("cards")
+    # get name and description
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Bad Request"}), 400
+    name = data.get("name")
+    description = data.get("description")
+    cards = data.get("cards")
         
-        # confirm data specifications
-        if not name:
-            return jsonify({
-                "success": False,
-                "error": "Name is required"
-            }), 400
-        elif len(description) > 255:
-            return jsonify({
-                "success": False,
-                "error": "Description must be less than 255 characters!"
-            }), 400
+    # confirm data specifications
+    if not name:
+        return jsonify({
+            "success": False,
+            "error": "Name is required"
+        }), 400
+    elif len(description) > 255:
+        return jsonify({
+            "success": False,
+            "error": "Description must be less than 255 characters!"
+        }), 400
         
-        # Add deck and card data return to default route
-        user = User.query.filter_by(username = username).first()
-        if user:
-            new_deck = Deck(name = name, description = description)
-            user.decks.append(new_deck)
-        else:
-            return jsonify({
-                "success": False, 
-                "error": "User not Found!"
-            }), 404
+    # Add deck and card data return to default route
+    user = User.query.filter_by(username = username).first()
+    if user:
+        new_deck = Deck(name = name, description = description)
+        user.decks.append(new_deck)
+    else:
+        return jsonify({
+            "success": False, 
+            "error": "User not Found!"
+        }), 404
         
-        for card in cards:
-            ques = card.get("ques")
-            ans = card.get("ans")
-            if not ques or not ans:
-                continue
+    # get each card's details and add it to deck
+    for card in cards:
+        ques = card.get("ques")
+        ans = card.get("ans")
+        if not ques or not ans:
+            continue
             
-            new_card = Card(ques = ques, ans = ans)
-            new_deck.cards.append(new_card)
+        new_card = Card(ques = ques, ans = ans)
+        new_deck.cards.append(new_card)
 
+    try:
         db.session.commit()
         return jsonify({
             "success": True,
-            "message": "Deck added Successfully!"
-        })
+            "message": "Deck added Succcessfuly!"
+        }), 200
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "error": "Something went wrong!"
+        }), 500
     
-    # fill form to create deck
-    else:
-        return render_template('add_deck.html')
 
 # delete a deck
-@app.route('/delete_deck', methods=["POST"])
+@app.route('/delete_deck', methods = ['POST'])
 def delete_deck():
     # get deck id and cast into int, return error if invalid datatype
     did = request.get_json()
@@ -168,7 +175,7 @@ def delete_deck():
             "error": "Deck not found!"
         }), 404
     
-@app.route('/edit_deck', methods=["POST"])
+@app.route('/edit_deck', methods = ['POST'])
 def edit_deck():
     if "user" not in session:
         return jsonify({
@@ -260,6 +267,7 @@ def load_cards(deck_id):
         {"card_id" : c.card_id, "ques": c.ques, "ans": c.ans, "did": c.did}
         for c in cards
     ]
+
     # return json response
     return jsonify({
         "success": True,
@@ -268,55 +276,50 @@ def load_cards(deck_id):
     }), 200
 
 # login
-@app.route('/login', methods = ["GET", "POST"])
+@app.route('/login', methods = ['POST'])
 def login():
-    # form submitted
-    if request.method == "POST":
-        # get username, password from query
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "Bad Request"}), 400
-        name = data.get("username")
-        password = data.get("password")
-
-        # name/password not entered
-        if not name or not password:
-            return jsonify({
-                "success": False,
-                "error": "Username and Password is Required!"
-            }), 400
-
-        # query for user
-        user = User.query.filter_by(username = name).first()
-        # user not found, register
-        if not user:
-            return jsonify({
-                "success": False,
-                "error": "Username Not Found!"
-            }), 404
         
-        # check password
-        if not check_password_hash(user.hash, password):
-            return jsonify({
-                "success": False,
-                "error": "Invalid Password!"
-            }), 400
-        
-        # save session
-        session["user"] = name
+    # get username, password from query
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Bad Request"}), 400
+    name = data.get("username")
+    password = data.get("password")
+
+    # name/password not entered
+    if not name or not password:
         return jsonify({
-            "success": True,
-            "message": "Logged in Successfully!"
-        }), 200
+            "success": False,
+            "error": "Username and Password is Required!"
+        }), 400
 
-    # load form
-    else:
-        return render_template('login.html')
+    # query for user
+    user = User.query.filter_by(username = name).first()
+    # user not found, register
+    if not user:
+        return jsonify({
+            "success": False,
+            "error": "Username Not Found!"
+        }), 404
+        
+    # check password
+    if not check_password_hash(user.hash, password):
+        return jsonify({
+            "success": False,
+            "error": "Invalid Password!"
+        }), 400
+        
+    # save session
+    session["user"] = name
+    return jsonify({
+        "success": True,
+        "message": "Logged in Successfully!"
+    }), 200
 
 # log out
 @app.route('/logout')
 def logout():
-    # clear user credentials and redirect
+    # clear user credentials
     session.clear()
     return jsonify({
         "success": True,
@@ -324,54 +327,50 @@ def logout():
     }), 200
 
 # register
-@app.route('/register', methods = ["GET", "POST"])
+@app.route('/register', methods = ['POST'])
 def register():
-    if request.method == "POST":
-        # get user details from form
-        data = request.get_json()
-        if not data:
-            return jsonify({"success": False, "error": "Bad Request"}), 400
-        name = data.get("username")
-        email = data.get("email")
-        password = data.get("password")
-        confirm_password = data.get("cnfmpass")
+    # get user details from form
+    data = request.get_json()
+    if not data:
+        return jsonify({"success": False, "error": "Bad Request"}), 400
+    name = data.get("username")
+    email = data.get("email")
+    password = data.get("password")
+    confirm_password = data.get("cnfmpass")
 
-        # user already exists in database
-        existing_user = User.query.filter(or_(User.username == name, User.email == email)).first()
-        if existing_user:
-            return jsonify({
-                "success": False,
-                "error": "Username/Email already exists"
-            }), 409
+    # user already exists in database
+    existing_user = User.query.filter(or_(User.username == name, User.email == email)).first()
+    if existing_user:
+        return jsonify({
+            "success": False,
+            "error": "Username/Email already exists"
+        }), 409
         
-        # confirm password
-        if password != confirm_password:
-            return jsonify({
-                "success": False,
-                "error": "Passwords do not match"
-            }), 400
+    # confirm password
+    if password != confirm_password:
+        return jsonify({
+            "success": False,
+            "error": "Passwords do not match"
+        }), 400
 
-        # generate password hash and create ORM for new user
-        hashed_password = generate_password_hash(password)
-        new_user = User(username = name, email = email, hash = hashed_password)
+    # generate password hash and create ORM for new user
+    hashed_password = generate_password_hash(password)
+    new_user = User(username = name, email = email, hash = hashed_password)
 
-        # save user to database
-        try:
-            db.session.add(new_user)
-            db.session.commit()
-            return jsonify({
-                "success": True,
-                "message": "Registration Successful!!"
-            }), 201
-        except IntegrityError:
-            db.session.rollback()
-            return jsonify({
-                "success": False,
-                "error": "Something Went wrong!"
-            }), 500
-    # render registration form
-    else:
-        return render_template('register.html')
+    # save user to database
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({
+            "success": True,
+            "message": "Registration Successful!!"
+        }), 201
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({
+            "success": False,
+            "error": "Something Went wrong!"
+        }), 500
 
 @app.route('/me')
 def me():
@@ -385,7 +384,7 @@ def me():
         "logged_in": True
    })
 
-@app.route('/ai/generate', methods = ["POST"])
+@app.route('/ai/generate', methods = ['POST'])
 def generate():
     if "user" not in session:
         return jsonify({
@@ -396,6 +395,13 @@ def generate():
     f = request.files["file"]
     pdf_bytes = f.read()
     doc = pymupdf.Document(stream=pdf_bytes)
+
+    if doc.page_count > 10:
+        return jsonify({
+            "success": False,
+            "error": "PDF can at most be 10 pages long"
+        }), 400
+
     request_text = """You are a flashcard generator.
                         Return ONLY valid JSON in this format:
 
@@ -412,7 +418,7 @@ def generate():
 
                     Below is the content you will use: 
                     
-"""
+    """
     for page in doc:
         text = page.get_text()
         if not text:

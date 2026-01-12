@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react"
 import { useNavigate, useParams } from "react-router-dom"
 
+function Spinner() {
+  return (
+    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+  );
+}
+
 function EditDeck() {
     const { deck_id } = useParams()
+    const [loading, setLoading] = useState(false)
     const [deck, setDeck] = useState({
         name: "",
         description: ""
@@ -47,11 +54,12 @@ function EditDeck() {
 
         if (!data.success) {
             setError(data.error)
-            alert(error)
+            setLoading(false)
             return
         }
-        else {
-            alert(data.message)
+        else {         
+            setLoading(false)
+            navigate('/')
             return
         }
     }
@@ -60,6 +68,7 @@ function EditDeck() {
         setCards(cards.map((card, index) => 
             index === i ? {...card, [name]: value} : card
         ))
+        setError("")
         return
     }
     
@@ -67,6 +76,7 @@ function EditDeck() {
         const name = e.target.name
         const value = e.target.value
         setDeck(values => ({...values, [name]: value}))
+        setError("")
         return
     }
 
@@ -86,26 +96,29 @@ function EditDeck() {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (Object.values(deck).some(value => !value.trim())) {
-            alert("Fill all fields")
+            setError("Fill all fields")
+            setLoading(false)
             return
         }
 
         if (deck.description.length > 255) {
-            alert("description needs to be less than 255 characters")
+            setError("description needs to be less than 255 characters")
+            setLoading(false)
             return 
         }
 
         for (const card of cards) {
             if (!card.ques.trim() || !card.ans.trim()) {
-                alert("Fill all fields!")
+                setError("Fill all fields!")
+                setLoading(false)
                 return
             }
         }
 
         requestEdit()
-        navigate('/')
         return
     }
 
@@ -211,13 +224,15 @@ function EditDeck() {
                 </div>
 
                 <hr className="text-[#9381ff]/30"/>
+
+                {error && (<p className="mx-auto text-sm text-center text-[#6f1a07]">{error}</p>)}
                 
                 <div className="grid grid-cols-2 py-2 px-6 gap-4">
                 <button type="reset" onClick={clearFields} className="border rounded-md py-2 text-[#9381ff] border-[#9381ff] hover:bg-gray-200 transition duration-300">
                     Clear
                 </button>
-                <button type="submit" className="bg-[#9381ff] text-[#f8f7ff]  py-2 rounded-md hover:opacity-80 transition duration-300">
-                    Save Changes
+                <button type="submit" disabled={loading} className="bg-[#9381ff] text-[#f8f7ff]  py-2 rounded-md hover:opacity-80 transition duration-300">
+                    {loading? <Spinner /> : "Save Changes"}
                 </button>
                 </div>
             </form>

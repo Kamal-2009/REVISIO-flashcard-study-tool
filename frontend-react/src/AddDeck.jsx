@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 
+function Spinner() {
+  return (
+    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+  );
+}
+
 function AddDeck( { initialCards } ) {
+    const navigate = useNavigate()
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState("")
     const [deck, setDeck] = useState({
         name: "",
         description: ""
@@ -19,8 +28,6 @@ function AddDeck( { initialCards } ) {
         }
     }, [initialCards])
     
-    const navigate = useNavigate()
-
     async function submitData() {
         const response = await fetch("http://localhost:5000/add_deck", {
             method: "POST",
@@ -38,12 +45,13 @@ function AddDeck( { initialCards } ) {
         const data = await response.json()
 
         if (!data.success) {
-            alert(data.error)
+            setError(data.error)
+            setLoading(false)
             return
         }
         else {
             navigate('/')
-            alert(data.message)
+            setLoading(false)
             return
         }
     }
@@ -52,10 +60,12 @@ function AddDeck( { initialCards } ) {
         setCards(cards.map((card, index) => 
             index === i ? {...card, [name]: value} : card
         ))
+        setError("")
         return
     }
     
     const handleChange = (e) => {
+        setError("")
         const name = e.target.name
         const value = e.target.value
         setDeck(values => ({...values, [name]: value}))
@@ -64,20 +74,27 @@ function AddDeck( { initialCards } ) {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (Object.values(deck).some(value => !value.trim())) {
-            alert("Fill all fields")
+            setError("Fill all fields")
+            console.log("deck name not filled")
+            setLoading(false)
             return
         }
 
         if (deck.description.length > 255) {
-            alert("description needs to be less than 255 characters")
+            setError("description needs to be less than 255 characters")
+            console.log("deck desc not filled")
+            setLoading(false)
             return 
         }
 
         for (let i = 0; i < cards.length; i++) {
-            if (Object.values(cards[i]).some(value => !value.trim())) {
-                alert("Fill all fields")
+            if (!cards[i].ques.trim() || !cards[i].ans.trim()) {
+                setError("Fill all fields")
+                console.log("card" + i + " not filled")
+                setLoading(false)
                 return
             }
         }
@@ -202,12 +219,14 @@ function AddDeck( { initialCards } ) {
 
                 <hr className="text-[#9381ff]/30"/>
                 
+                {error && (<p className="mx-auto text-sm text-center text-[#6f1a07]">{error}</p>)}
+                
                 <div className="grid grid-cols-2 py-2 px-6 gap-4">
                 <button type="reset" onClick={clearFields} className="border rounded-md py-2 text-[#9381ff] border-[#9381ff] hover:bg-gray-200 transition duration-300">
                     Clear
                 </button>
-                <button type="submit" className="bg-[#9381ff] text-[#f8f7ff]  py-2 rounded-md hover:opacity-80 transition duration-300">
-                    Create deck
+                <button type="submit" disabled={loading} className="flex justify-center items-center bg-[#9381ff] text-[#f8f7ff] py-2 rounded-md hover:opacity-80 transition duration-300">
+                    {loading ? <Spinner /> : "Create deck"}
                 </button>
                 </div>
             </form>

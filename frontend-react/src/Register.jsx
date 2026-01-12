@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+
+function Spinner() {
+  return (
+    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+  );
+}
 
 function Register() {
     const [inputs, setInputs] = useState({
@@ -9,6 +15,8 @@ function Register() {
         cnfmpass: ""
     });
     const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
+    const navigate = useNavigate()
 
     async function reg({username, email, password, cnfmpass}) {
         const response = await fetch("http://localhost:5000/register", {
@@ -26,9 +34,11 @@ function Register() {
         const data = await response.json()
         if (!data.success) {
             setError(data.error)
+            setLoading(false)
             return
         } else {
-            alert(data.message)
+            navigate('/login')
+            setLoading(false)
             return
         }
     }
@@ -42,9 +52,11 @@ function Register() {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (Object.values(inputs).some(value => !value.trim())) {
-            setError("Fill all fields");
+            setError("Fill all fields");    
+            setLoading(false)      
             return
         }
         reg(inputs)
@@ -66,11 +78,12 @@ function Register() {
                     name="username"
                     value={inputs.username}
                     onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
+                    className="w-full mt-1 px-3 py-2 
+                            bg-[#b8b8ff40] rounded-md
+                            border border-[#9381ff]/20
                             focus:outline-none
                             focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
+                            focus:ring-1 focus:ring-[#9381ff]
                             transition duration-300"
                 />
                 </div>
@@ -84,11 +97,12 @@ function Register() {
                     name="email"
                     value={inputs.email}
                     onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
+                    className="w-full mt-1 px-3 py-2 
+                            bg-[#b8b8ff40] rounded-md
+                            border border-[#9381ff]/20
                             focus:outline-none
                             focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
+                            focus:ring-1 focus:ring-[#9381ff]
                             transition duration-300"
                 />
                 </div>
@@ -102,11 +116,12 @@ function Register() {
                     name="password"
                     value={inputs.password}
                     onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
+                    className="w-full mt-1 px-3 py-2 
+                            bg-[#b8b8ff40] rounded-md
+                            border border-[#9381ff]/20
                             focus:outline-none
                             focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
+                            focus:ring-1 focus:ring-[#9381ff]
                             transition duration-300"
                 />
                 </div>
@@ -120,11 +135,12 @@ function Register() {
                     name="cnfmpass"
                     value={inputs.cnfmpass}
                     onChange={handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
+                    className="w-full mt-1 px-3 py-2 
+                            bg-[#b8b8ff40] rounded-md
+                            border border-[#9381ff]/20
                             focus:outline-none
                             focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
+                            focus:ring-1 focus:ring-[#9381ff]
                             transition duration-300"
                 />
                 </div>
@@ -137,13 +153,16 @@ function Register() {
 
                 <button
                 type="submit"
-                className="w-full bg-[#9381FF] text-[#f8f7ff]
-                            py-2 rounded-md
-                            font-medium
-                            hover:opacity-90
-                            transition-colors duration-300"
+                disabled={loading}
+                className="flex items-center justify-center
+                        w-full bg-[#9381FF] 
+                        text-[#f8f7ff]
+                        py-2 rounded-md
+                        font-medium
+                        hover:opacity-90
+                        transition-colors duration-300"
                 >
-                Register
+                {loading ? <Spinner/> : "Register"}
                 </button>
 
             </form>

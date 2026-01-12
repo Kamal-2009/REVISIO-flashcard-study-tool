@@ -14,8 +14,8 @@ function App() {
     const data = await response.json()
     if (data.logged_in) {
       setLoggedIn(true)
-      return
     }
+    return
   }
   
   useEffect(() => {

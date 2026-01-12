@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
 import Study from "./Study"
 import AddDeck from "./AddDeck"
-import { Route, Routes, useNavigate } from "react-router-dom"
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import logo from "./assets/logo.svg"
 import plus from "./assets/plus.svg"
 import edit from "./assets/edit.svg"
@@ -12,6 +12,33 @@ import upload from "./assets/upload.svg"
 import fileCheck from "./assets/file.svg"
 
 let cards = null
+
+function Spinner() {
+  return (
+    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+  );
+}
+
+function DeleteModal({ onCancel, onConfirm} ) {
+    const [loading, setLoading] = useState(false)
+
+    return (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-[#f8f7ff] rounded-lg p-6 flex flex-col space-y-4 md:w-lg w-sm text-[#1f2937]">
+                <h1 className="text-lg font-semibold text-[#641f07]">Delete Deck?</h1>
+                <p className="text-sm text-gray-600">Are you sure you want to delete this deck? This action cannot be undone.</p>
+                <div className="flex justify-end space-x-4">
+                    <button type="button" onClick={onCancel} className="px-4 py-2 border rounded-lg border-[#9381ff]/20 hover:bg-gray-300 transition duration-300">
+                        Cancel
+                    </button>
+                    <button type="button" onClick={() => {setLoading(true); onConfirm();}} className="px-4 py-2 rounded-lg bg-[#641f07] text-[#ffeedd] flex items-center justify-center hover:opacity-80 transtion duration-300">
+                        {loading ? <Spinner/> : "Delete"}
+                    </button>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 function ChoiceModal({ onClose, onManual, onPDF}) {
     return (
@@ -47,7 +74,9 @@ function ChoiceModal({ onClose, onManual, onPDF}) {
 }
 
 function UploadModal({onClose, onSuccess}) {
+    const [error, setError] = useState("")
     const [file, setFile] = useState(null)
+    const [loading, setLoading] = useState(false)
 
     async function submitFile() {
         const form = new FormData()
@@ -61,11 +90,13 @@ function UploadModal({onClose, onSuccess}) {
 
         const data = await response.json()
         if(!data.success) {
-            alert(data.error)
+            setError(data.error)
+            setLoading(false)
             return
         }
         else {
             cards = data.cards
+            setLoading(false)
             onSuccess()
             return
         }
@@ -73,9 +104,11 @@ function UploadModal({onClose, onSuccess}) {
     
     const handleSubmit = (e) => {
         e.preventDefault()
+        setLoading(true)
 
         if (file.type !== "application/pdf") {
-            alert("Invalid File Type!")
+            setError("Invalid File Type!")
+            setLoading(false)
             return
         }
 
@@ -120,6 +153,9 @@ function UploadModal({onClose, onSuccess}) {
                     </label>
                     <input type="file" id="pdf-upload" accept=".pdf" className="hidden" onChange={(e) => setFile(e.target.files[0])}/>
                 </div>
+
+                {error && (<p className="mx-auto text-sm text-center text-[#6f1a07]">{error}</p>)}
+
                 <div className="grid grid-cols-2 gap-4">
                     <button 
                         type="button" 
@@ -143,11 +179,13 @@ function UploadModal({onClose, onSuccess}) {
                 ) : (
                     <button 
                         type="submit" 
-                        className="bg-[#9381ff] py-2
+                        disabled={loading}
+                        className="flex items-center justify-center
+                            bg-[#9381ff] py-2
                             text-[#f8f7ff] rounded-md 
                             hover:opacity-80 
                             transition duration-300">
-                        Generate Flashcards
+                        {loading ? <Spinner /> : "Generate Flashcards"}
                     </button>
                 )}
                     
@@ -163,9 +201,10 @@ function Home({onLogout}) {
     const [decks, setDecks] = useState([])
     const [choice, setChoice] = useState(false)
     const [upload, setUpload] = useState(false)
+    const [deleteTarget, setDeleteTarget] = useState(null)
     const navigate = useNavigate()
+    const location = useLocation()
     
-
     async function loadDecks() {
         let response = await fetch("http://localhost:5000/load_decks", {
             credentials: "include"
@@ -192,10 +231,6 @@ function Home({onLogout}) {
     }
 
     async function handleDelete(did) {
-        const ok = confirm("Are you sure you want to delete this deck?")
-        if (!ok) {
-            return
-        }
 
         const response = await fetch("http://localhost:5000/delete_deck", {
             method: "POST",
@@ -209,16 +244,18 @@ function Home({onLogout}) {
         })
         const data = await response.json()
         if (!data.success) {
-            alert(data.error)
+            setError(data.error)
+            setDeleteTarget(null)
             return
         }
         loadDecks()
+        setDeleteTarget(null)
         return
     }
 
     useEffect(() => {
         loadDecks();
-    }, [])
+    }, [location.key])
 
     return (
         <>
@@ -229,14 +266,29 @@ function Home({onLogout}) {
                     {choice && (
                         <ChoiceModal
                             onClose={() => setChoice(false)}
-                            onManual={() => navigate('/add_deck')}
-                            onPDF={() => setUpload(true)}
+                            onManual={() => {
+                                setChoice(false)
+                                navigate('/add_deck')
+                            }}
+                            onPDF={() => {
+                                setUpload(true)
+                                setChoice(false)
+                            }}
                         />
                     )}
                     {upload && (
                         <UploadModal
                             onClose={() => setUpload(false)}
-                            onSuccess={() => navigate('/add_deck')}
+                            onSuccess={() => {
+                                setUpload(false)
+                                navigate('/add_deck')
+                            }}
+                        />
+                    )}
+                    {deleteTarget && (
+                        <DeleteModal
+                            onCancel={() => setDeleteTarget(null)}
+                            onConfirm={() => handleDelete(deleteTarget)}
                         />
                     )}
                     <div className="bg-[#B8B8FF] text-[#F8F7FF] border-b border-[#9381FF]">
@@ -275,7 +327,7 @@ function Home({onLogout}) {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                             {decks.map(deck => (
-                                <div key={deck.deck_id} className="rounded-[10px] border border-gray-300 p-4 hover:shadow-sm transition-shadow duration-300">
+                                <div key={deck.deck_id} className="rounded-[10px] border border-gray-300 p-4 hover:shadow-md transition-shadow duration-200">
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center">
                                         <img src={logo} alt="Logo" className="h-8 w-auto pr-2"/>
@@ -297,7 +349,7 @@ function Home({onLogout}) {
                                         <img src={edit} alt="Edit" className="h-5 w-auto"/>
                                     </button>
                                     <button 
-                                        onClick={() => handleDelete(deck.deck_id)}
+                                        onClick={() => setDeleteTarget(deck.deck_id)}
                                         className="rounded-lg px-2.5 py-1.5 border border-gray-300 bg-[#ffeedd] hover:bg-[#ffd8be] transition duration-300">
                                         <svg
                                             viewBox="0 0 24 24"

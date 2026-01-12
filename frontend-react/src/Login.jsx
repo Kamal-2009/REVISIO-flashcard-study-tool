@@ -1,12 +1,19 @@
 import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom";
 
+function Spinner() {
+  return (
+    <div className="w-5 h-5 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+  );
+}
+
 function Login({onSuccess}) {
     const [user, setUser] = useState({
         username: "",
         password: ""
     });
     const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
 
     async function Auth(n, p) {
@@ -25,11 +32,12 @@ function Login({onSuccess}) {
         const data = await response.json()
         if (!data.success) {
             setError(data.error)
+            setLoading(false)
             return
         } else {
-            alert("Login Successful!")
             onSuccess()
             navigate("/")
+            setLoading(false)
             return
         }
     }
@@ -43,8 +51,11 @@ function Login({onSuccess}) {
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        setLoading(true)
+
         if (!user.username.trim() || !user.password.trim()) {
             setError("fill all fields!")
+            setLoading(false)
             return;
         }
         Auth(user.username.trim(), user.password.trim())
@@ -67,11 +78,12 @@ function Login({onSuccess}) {
                     name = "username"
                     value = {user.username}
                     onChange = {handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
+                    className="w-full mt-1 px-3 py-2 
+                            bg-[#b8b8ff40] rounded-md
+                            border border-[#9381ff]/20
                             focus:outline-none
                             focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
+                            focus:ring-1 focus:ring-[#9381ff]
                             transition duration-300"       
                 />
                 </div> 
@@ -85,11 +97,12 @@ function Login({onSuccess}) {
                     name = "password"
                     value = {user.password}
                     onChange = {handleChange}
-                    className="w-full mt-1 px-3 py-2 rounded-md
-                            border border-[#9381ff]/30
+                    className="w-full mt-1 px-3 py-2 
+                            bg-[#b8b8ff40] rounded-md
+                            border border-[#9381ff]/20
                             focus:outline-none
                             focus:border-[#9381ff]
-                            focus:ring-1 focus:ring-[#9381ff]/50
+                            focus:ring-1 focus:ring-[#9381ff]
                             transition duration-300"   
                 />
                 </div>
@@ -101,13 +114,16 @@ function Login({onSuccess}) {
                 )}
                 <button 
                 type = "submit"
-                className="w-full bg-[#9381FF] text-[#f8f7ff]
-                            py-2 rounded-md
-                            font-medium
-                            hover:opacity-90
-                            transition-colors duration-300"
+                disabled={loading}
+                className="flex items-center justify-center
+                        w-full bg-[#9381FF] 
+                        text-[#f8f7ff]
+                        py-2 rounded-md
+                        font-medium
+                        hover:opacity-90
+                        transition-colors duration-300"
                 >
-                    Login
+                {loading ? <Spinner /> : "Login"} 
                 </button>
             </form>
             <p className="text-center text-sm text-[#2b2118]">
