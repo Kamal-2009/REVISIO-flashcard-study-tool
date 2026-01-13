@@ -1,83 +1,109 @@
-# REVISIO - A Flashcard Study Tool
-#### Video Demo:  https://youtu.be/l95GWDNdOvs
-#### Description: 
-For my CS50x Final Project, I created a web application called **Revisio**, which is a flashcard study tool designed to help students review and memorize material more effectively. The inspiration for Revisio came from my own study habits. While I found that digital flashcard systems like Anki are very powerful, they are also complex, heavy, and sometimes overwhelming for new users. I wanted to build a much simpler system that I could understand from the inside out, while also reinforcing what I had learned during the course about databases, web frameworks, and authentication.
+# Revisio — AI-Powered Flashcard Study Tool
+
+Revisio is a modern flashcard-based study application designed to help students turn their own study material into effective revision tools. Unlike traditional flashcard apps that rely on manual entry or pre-made decks, Revisio allows users to generate flashcards directly from their notes and PDFs using AI, while still keeping full control through editing and customization.
+
+This version (v2) represents the evolution of the original CS50 project into a full single-page application with a React frontend, REST API backend, and AI-assisted card generation.
 
 ---
 
-### Purpose and Motivation
+## What Revisio Does
 
-The main purpose of Revisio is to give users a lightweight but functional platform to create and review flashcards. Flashcards remain one of the most effective study methods, but most apps available today come with a large number of extra features, plugins, or syncing requirements. My goal was to focus on the core idea: a user should be able to log in, create a question and answer pair, and then use it for review later. Everything else is secondary.
+Revisio allows users to:
 
-From a learning perspective, my motivation was to apply the concepts of web programming, database design, and user authentication in a real project. Throughout CS50, I had built smaller, isolated projects such as finance, trivia, and search, but this final project was the first opportunity to design something end-to-end that could potentially be used by others.
+- Create and manage flashcard decks  
+- Study using an interactive flip-card interface  
+- Upload PDFs or notes and automatically generate flashcards using AI  
+- Edit, delete, and refine generated cards before saving  
+- Keep all decks private and tied to their user account  
 
----
-
-### Features
-
-The core features of Revisio are:
-
-1. **User Authentication**  
-   - New users can register with a username and password.  
-   - Passwords are hashed using Werkzeug before storage in the database.  
-   - Sessions are managed so that each user can stay logged in securely.
-
-2. **Flashcard Creation**  
-   - Users can create flashcards by entering a question and an answer.  
-   - Each flashcard is linked to the specific user who created it.  
-   - Data is stored in a MySQL database using SQLAlchemy as the ORM.
-
-3. **Flashcard Viewing**  
-   - Users can view all the flashcards they have created.  
-   - Cards are displayed in a simple format that makes them easy to read.  
-   - Each user only has access to their own data, so privacy is ensured.
-   
-4. **Vanilla JavaScript Enhancements**  
-   - Implemented a simple internal API using JavaScript to fetch and display flashcards dynamically without reloading the page.  
-   - Added a **flip animation** for cards using CSS and JavaScript, so that clicking a flashcard flips it to reveal the answer.
-
-5. **Responsive Design**  
-   - The HTML templates use basic CSS to remain clean and usable across devices.  
-   - The goal was not to make the interface fancy, but functional and distraction-free.
+The focus of the app is to make **learning fast and personal** by turning a user’s own material into flashcards instead of relying on generic decks.
 
 ---
 
-### Technology Stack
+## Key Features
 
-Revisio is implemented using the following technologies:
+### AI-Powered PDF to Flashcards
+Users can upload a PDF containing their notes or slides. Revisio extracts text from the document (including OCR for scanned PDFs) and sends it to an AI model, which generates structured flashcards. The generated cards are shown in the editor, where users can modify or delete them before saving.
 
-- **Flask (Python)** as the main backend web framework.  
-- **MySQL** as the database engine.  
-- **SQLAlchemy** to map database tables to Python objects and simplify queries.  
-- **Flask-WTF and CSRFProtect** for secure form handling.  
-- **Werkzeug Security** for password hashing.  
-- **HTML/CSS** for templates and styling.  
+### Manual Deck Creation
+For users who prefer full control, decks can also be created entirely by hand through the flashcard editor.
 
----
+### Interactive Study Mode
+Flashcards use a smooth 3D flip animation. Users can move forward and backward through a deck and track their progress visually.
 
-### Project Structure
+### Deck Management
+Users can:
+- Create decks
+- Edit decks and cards
+- Delete decks
+- Study any deck they own  
 
-The project is organized into the following key files and directories:
-
-- `app.py` – main Flask application containing routes and logic.  
-- `templates/` – contains the HTML templates rendered by Flask.  
-- `static/` – contains the CSS stylesheet and other static files.  
-- `requirements.txt` – lists all dependencies required to run the project.  
-
-This organization keeps the code modular and separates concerns between logic, presentation, and data.
+All data is scoped to the logged-in user.
 
 ---
 
-### Challenges Faced
+## Technology Stack
 
-One of the main challenges was getting MySQL configured properly. Since many CS50 examples use SQLite, switching to MySQL required me to learn how to set up the URI connection, manage migrations, and handle database errors. 
+### Frontend
+- React (Single Page Application)
+- React Router for navigation
+- Tailwind CSS for styling
 
-Another difficulty was ensuring that users could only see their own flashcards. At first, I accidentally displayed all cards in the database to every logged-in user. Fixing this required adding filtering logic so that flashcards are always tied to the currently logged-in user’s ID.
+### Backend
+- Flask (Python)
+- MySQL database
+- SQLAlchemy ORM
+- Flask sessions for authentication
+- RESTful API for all data operations
+
+### AI & PDF Processing
+- PyMuPDF (fitz) for PDF parsing
+- OCR for scanned PDFs
+- OpenAI GPT-5 for flashcard generation from extracted text
 
 ---
 
-### Lessons Learned
+## Project Structure
+/
+├── app.py # Flask backend
+├── requirements.txt
+├── frontend/ # React frontend
+├── revisio-env/ # Python virtual environment
+├── README.md # Original CS50 version
+└── README-v2.md # This version
 
-Building Revisio taught me much more than just how to put together a Flask app. I learned the importance of structuring a project, documenting the code, and making design decisions early. I also gained hands-on experience with SQLAlchemy relationships and migrations. Beyond the technical skills, I learned that simplicity is often better than complexity. Instead of chasing every feature I could think of, I focused on getting the basics right and making sure they worked reliably.
+
+The frontend and backend are separated but live in the same repository.
 
 ---
+
+## How the AI Pipeline Works
+
+1. User uploads a PDF  
+2. Backend extracts text from each page  
+3. If a page has no selectable text, OCR is applied  
+4. Extracted text is sent to the AI  
+5. The AI returns flashcards in strict JSON format  
+6. The frontend loads the cards into the deck editor  
+7. The user edits and saves them  
+
+This ensures the AI never writes directly to the database — the user stays in control.
+
+---
+
+## Why This Version Exists
+
+The original Revisio was built for CS50 to demonstrate:
+- Flask
+- SQLAlchemy
+- Authentication
+- CRUD operations
+
+This version expands on that foundation by adding:
+- A React frontend
+- A REST API architecture
+- AI-based flashcard generation
+- OCR and PDF processing
+- A more polished user experience
+
+It reflects growth from a course project into a real full-stack application.
