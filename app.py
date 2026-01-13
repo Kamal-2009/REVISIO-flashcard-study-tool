@@ -17,13 +17,17 @@ app = Flask(__name__)
 CORS(
     app,
     supports_credentials=True,
-    origins=["http://localhost:5173"]
+    origins=[
+        "http://localhost:5173",
+        "https://revisio-api.onrender.com",
+        "https://revisio-pi.vercel.app"
+    ]
 )
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config.update(
-    SESSION_COOKIE_SAMESITE="Lax",
-    SESSION_COOKIE_SECURE=False  # must be False on HTTP
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=True  # must be False on HTTP
 )
 app.secret_key = os.urandom(24)
 db = SQLAlchemy(app)
