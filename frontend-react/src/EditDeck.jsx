@@ -17,9 +17,11 @@ function EditDeck() {
     const [cards, setCards] = useState([])
     const [error, setError] = useState("")
     const navigate = useNavigate()
+    const API_URL = import.meta.env.VITE_API_URL
+
 
     async function load_cards() {
-        const response = await fetch(`http://localhost:5000/load_cards/${deck_id}`, {
+        const response = await fetch(`${API_URL}/load_cards/${deck_id}`, {
             credentials: "include"
         })
         const data = await response.json()
@@ -36,7 +38,7 @@ function EditDeck() {
     }
 
     async function requestEdit() {
-        const response = await fetch('http://localhost:5000/edit_deck', {
+        const response = await fetch(`${API_URL}/edit_deck`, {
             method: "POST", 
             headers: {
                 "content-type": "application/json"

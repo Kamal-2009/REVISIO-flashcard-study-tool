@@ -15,10 +15,11 @@ function Login({onSuccess}) {
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+    const API_URL = import.meta.env.VITE_API_URL
 
     async function Auth(n, p) {
         /* perform authentication by fetching from route */
-        const response = await fetch("http://localhost:5000/login", {
+        const response = await fetch(`${API_URL}/login`, {
             method: "POST",
             credentials: "include",
             headers: {

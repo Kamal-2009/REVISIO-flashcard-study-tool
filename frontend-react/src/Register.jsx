@@ -17,9 +17,10 @@ function Register() {
     const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
     const navigate = useNavigate()
+    const API_URL = import.meta.env.VITE_API_URL
 
     async function reg({username, email, password, cnfmpass}) {
-        const response = await fetch("http://localhost:5000/register", {
+        const response = await fetch(`${API_URL}/register`, {
             method: "POST",
             headers: {
                 "content-type": "application/json"

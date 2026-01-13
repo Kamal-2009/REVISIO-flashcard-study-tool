@@ -27,9 +27,11 @@ function AddDeck( { initialCards } ) {
             setCards(initialCards)
         }
     }, [initialCards])
+    const API_URL = import.meta.env.VITE_API_URL
+
     
     async function submitData() {
-        const response = await fetch("http://localhost:5000/add_deck", {
+        const response = await fetch(`${API_URL}/add_deck`, {
             method: "POST",
             headers: {
                 "content-type": "application/json"

@@ -11,10 +11,11 @@ function Study() {
     const [curIndex, setIndex] = useState(0)
     const [flipped, setFlipped] = useState(false)
     const navigate = useNavigate()
+    const API_URL = import.meta.env.VITE_API_URL
     let total = cards.length
 
     async function load_cards() {
-        const response = await fetch(`http://localhost:5000/load_cards/${deck_id}`, {
+        const response = await fetch(`${API_URL}/load_cards/${deck_id}`, {
             credentials: "include"
         })
         const data = await response.json()

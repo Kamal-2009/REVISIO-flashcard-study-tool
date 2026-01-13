@@ -12,6 +12,7 @@ import upload from "./assets/upload.svg"
 import fileCheck from "./assets/file.svg"
 
 let cards = null
+const API_URL = import.meta.env.VITE_API_URL
 
 function Spinner() {
   return (
@@ -82,7 +83,7 @@ function UploadModal({onClose, onSuccess}) {
         const form = new FormData()
         form.append("file", file)
 
-        const response = await fetch("http://localhost:5000/ai/generate", {
+        const response = await fetch(`${API_URL}/ai/generate`, {
             method: "POST",
             credentials: "include",
             body: form
@@ -206,7 +207,7 @@ function Home({onLogout}) {
     const location = useLocation()
     
     async function loadDecks() {
-        let response = await fetch("http://localhost:5000/load_decks", {
+        let response = await fetch(`${API_URL}/load_decks`, {
             credentials: "include"
         })
         let data = await response.json()
@@ -221,7 +222,7 @@ function Home({onLogout}) {
     }
 
     async function handleLogout() {
-        const response = await fetch("http://localhost:5000/logout", {
+        const response = await fetch(`${API_URL}/logout`, {
             credentials: "include"
         })
         const data = await response.json()
@@ -232,7 +233,7 @@ function Home({onLogout}) {
 
     async function handleDelete(did) {
 
-        const response = await fetch("http://localhost:5000/delete_deck", {
+        const response = await fetch(`${API_URL}/delete_deck`, {
             method: "POST",
             credentials: "include",
             headers: {

@@ -6,9 +6,10 @@ import Home from './Home'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
+  const API_URL = import.meta.env.VITE_API_URL
 
   async function me() {
-    const response = await fetch("http://localhost:5000/me", {
+    const response = await fetch(`${API_URL}/me`, {
       credentials: "include"
     })
     const data = await response.json()
