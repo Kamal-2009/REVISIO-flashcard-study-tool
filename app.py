@@ -58,6 +58,9 @@ class User(db.Model):
     hash = db.Column(db.String(255), nullable = False)
     decks = db.relationship("Deck", back_populates="user", lazy = True, cascade="all, delete")
 
+with app.app_context():
+    db.create_all()
+
 @app.route('/load_decks')
 def load_decks():
     # Check if user logged in
