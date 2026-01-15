@@ -5,10 +5,12 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
+import tempfile
 import os
 import pymupdf
 from openai import OpenAI
-import json
+from pydantic import BaseModel
+from typing import List
 
 load_dotenv()
 
@@ -58,8 +60,21 @@ class User(db.Model):
     hash = db.Column(db.String(255), nullable = False)
     decks = db.relationship("Deck", back_populates="user", lazy = True, cascade="all, delete")
 
+# classes for structured output
+class Flashcard(BaseModel):
+    id: str
+    ques: str
+    ans: str
+
+class FlashcardList(BaseModel):
+    cards: List[Flashcard]
+
 with app.app_context():
     db.create_all()
+
+@app.route("/")
+def health():
+    return "ok", 200
 
 @app.route('/load_decks')
 def load_decks():
@@ -399,47 +414,48 @@ def generate():
         }), 400
     
     f = request.files["file"]
-    pdf_bytes = f.read()
-    doc = pymupdf.Document(stream=pdf_bytes)
 
-    if doc.page_count > 10:
-        return jsonify({
-            "success": False,
-            "error": "PDF can at most be 10 pages long"
-        }), 400
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
+        f.save(tmp)
+        tmp_path = tmp.name
 
-    request_text = """You are a flashcard generator.
-                        Return ONLY valid JSON in this format:
+    try:
+        doc = pymupdf.open(tmp_path)
 
-                        [
-                        { "id": "string", "ques": "string", "ans": "string" }
-                        ]
+        if doc.page_count > 10:
+            return jsonify({
+                "success": False,
+                "error": "PDF can at most be 10 pages long"
+            }), 400
+        
+        system_prompt = (
+            "You are a flashcard generator. Create high-quality question-answer flashcards from the provided text. "
+            "Each flashcard must have a globally unique id (UUID or similar); answers should be concise and correct."
+        )
 
-                        Rules:
-                        - id must be a unique string for each card (e.g., a UUID)
-                        - No markdown
-                        - No explanations
-                        - No text before or after JSON
-                        - Generate high-quality questions and concise, correct answers
+        cards = []
+        for page in doc:
+            text = page.get_text()
+            if not text:
+                tp = page.get_textpage_ocr()
+                text = page.get_text(textpage = tp)
 
-                    Below is the content you will use: 
-                    
-    """
-    for page in doc:
-        text = page.get_text()
-        if not text:
-            tp = page.get_textpage_ocr()
-            text = page.get_text(textpage = tp)
-        request_text += text
-    
-    response = client.responses.create(
-        model="gpt-5-nano",
-        input=request_text
-    )
-    
-    generated_cards = json.loads(response.output_text)
+            response = client.responses.parse(
+                model="gpt-4o-mini",
+                input=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user",   "content": text}
+                ],
+                text_format=FlashcardList
+            )
+
+            cards.extend(response.output_parsed.cards)
+        
+    finally:
+        doc.close()
+        os.remove(tmp_path)
 
     return jsonify({ 
         "success": True,
-        "cards": generated_cards
+        "cards": [card.model_dump() for card in cards]
     }), 200
