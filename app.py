@@ -27,13 +27,17 @@ CORS(
 )
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "pool_size": 1,
+    "max_overflow": 0,
+    "pool_pre_ping": True,
+}
 app.config.update(
     SESSION_COOKIE_SAMESITE="None",
     SESSION_COOKIE_SECURE=True  # must be False on HTTP
 )
 app.secret_key = os.urandom(24)
 db = SQLAlchemy(app)
-client = OpenAI()
 
 # sqlalchemy ORMs
 class Card(db.Model):
@@ -407,6 +411,8 @@ def me():
 
 @app.route('/ai/generate', methods = ['POST'])
 def generate():
+    client = OpenAI()
+
     if "user" not in session:
         return jsonify({
             "success": False, 
