@@ -1,7 +1,7 @@
 from flask import Flask, flash,jsonify, request, session
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
+from sqlalchemy import text,or_
 from sqlalchemy.exc import IntegrityError
 from werkzeug.security import check_password_hash, generate_password_hash
 from dotenv import load_dotenv
@@ -465,3 +465,11 @@ def generate():
         "success": True,
         "cards": [card.model_dump() for card in cards]
     }), 200
+
+@app.route("/health")
+def health():
+    try:
+        db.session.execute(text("SELECT 1"))
+        return {"status": "ok"}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
