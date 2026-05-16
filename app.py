@@ -78,7 +78,11 @@ with app.app_context():
 
 @app.route("/")
 def health():
-    return "ok", 200
+    try:
+        db.session.execute(text("SELECT 1"))
+        return {"status": "ok"}, 200
+    except Exception as e:
+        return {"status": "error", "message": str(e)}, 500
 
 @app.route('/load_decks')
 def load_decks():
@@ -465,11 +469,3 @@ def generate():
         "success": True,
         "cards": [card.model_dump() for card in cards]
     }), 200
-
-@app.route("/health")
-def health():
-    try:
-        db.session.execute(text("SELECT 1"))
-        return {"status": "ok"}, 200
-    except Exception as e:
-        return {"status": "error", "message": str(e)}, 500
